@@ -172,7 +172,7 @@ begin
             report "Test " & integer'image(test_count) & " (Write xEF after reset): FAILED - Expected: 239, Got: " & integer'image(to_integer(unsigned(Dout)));
         end if;
         
-        report integer'image(successful_tests) & " tests of " & integer'image(test_count) & " tests passed.";
+        report integer'image(successful_tests) & " tests of " & integer'image(test_count) & " passed.";
     wait;
     end process;
 
