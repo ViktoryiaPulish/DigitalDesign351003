@@ -123,6 +123,68 @@ begin
                         natural'image(2 * (Ks(i) / 2) * clock_count) & " changes instead of " &
                         natural'image(state_changes) & ".";
             end if;
+            
+            report "EN test with K = " & natural'image(Ks(i)) & ".";
+            clock_count := Ks(i) / 2;
+            prev_state := Q(i);
+            EN(i) <= '0';
+            wait for 10 ns;
+            for cur_clock in 1 to clock_count loop
+                CLK(i) <= '1';
+                wait for 10 ns;
+                CLK(i) <= '0';
+                wait for 10 ns;
+            end loop;
+            EN(i) <= '1';
+            wait for 10 ns;
+            test_counter := test_counter + 1;
+            if Q(i) = prev_state then
+                succeded_tests := succeded_tests + 1;
+            else
+                report "EN does not work properly with K = " & natural'image(Ks(i)) & ".";
+            end if;
+            
+            report "RST test with K = " & natural'image(Ks(i)) & ".";
+            clock_count := Ks(i) / 2;
+            if Q(i) /= '1' then
+                prev_state := Q(i);
+                for cur_clock in 1 to clock_count loop
+                    CLK(i) <= '1';
+                    wait for 10 ns;
+                    CLK(i) <= '0';
+                    wait for 10 ns;
+                end loop;
+            end if;
+            CLK(i) <= '1';
+            wait for 10 ns;
+            CLK(i) <= '0';
+            wait for 10 ns;
+            RST(i) <= '1';
+            CLK(i) <= '1';
+            wait for 10 ns;
+            RST(i) <= '0';
+            CLK(i) <= '0';
+            wait for 10 ns;
+            test_counter := test_counter + 2;
+            if Q(i) = '0' then
+                succeded_tests := succeded_tests + 1;
+            else
+                report "Divider with K = " & natural'image(Ks(i)) & " did not reset its value.";
+            end if;
+            prev_state := '0';
+            for cur_clock in 1 to clock_count loop
+                CLK(i) <= '1';
+                wait for 10 ns;
+                CLK(i) <= '0';
+                wait for 10 ns;
+                if prev_state /= Q(i) then
+                    if clock_count mod cur_clock = 0 then
+                        succeded_tests := succeded_tests + 1;
+                    else
+                        report "Counter with K = " & natural'image(Ks(i)) & " did not reset its state.";
+                    end if;
+                end if;
+            end loop;
         end loop;
        
         report natural'image(succeded_tests) & " tests of " & natural'image(test_counter) & " successfully passed.";
